@@ -1,0 +1,22 @@
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=readFileSync(new URL('../dist/app.js',import.meta.url),'utf8');
+const elements=new Map(),listeners={};
+const $=id=>{if(!elements.has(id))elements.set(id,{value:0,checked:false,textContent:'',setAttribute(){}});return elements.get(id);};
+let attempts=0,blocked=true;
+class AudioMock{paused=true;currentTime=0;play(){attempts++;if(blocked)return Promise.reject(Error('gesture required'));this.paused=false;this.onplay?.();return Promise.resolve();}pause(){this.paused=true;this.onpause?.();}}
+const ctx=vm.createContext({Audio:AudioMock,$,read:()=>({volume:.9,track:3}),clamp:(v,a,b)=>Math.min(b,Math.max(a,v)),esc:String,localStorage:{setItem(){}},document:{createElement:()=>({setAttribute(){}}),body:{append(){}},addEventListener:(name,fn)=>listeners[name]=fn}});
+vm.runInContext(source.slice(source.indexOf('const music=new Audio()'),source.indexOf('\nconst crewStyle=')),ctx);
+vm.runInContext(source.slice(source.indexOf('function autoStartMusic()'),source.indexOf('\ninitCharacter(')),ctx);
+await Promise.resolve();
+assert.equal(vm.runInContext('music.volume',ctx),.25);
+assert(source.includes('settings.volume=50;'));
+assert.equal(attempts,1);
+blocked=false;listeners.pointerdown({target:{closest:()=>null}});assert.equal(attempts,2);
+assert.equal(vm.runInContext('music.paused',ctx),false);
+$('#music-stop').onclick();listeners.pointerdown({target:{closest:()=>null}});assert.equal(attempts,2);
+let last=vm.runInContext('trackIndex',ctx);$('#music-random').onclick();assert.notEqual(vm.runInContext('trackIndex',ctx),last);
+last=vm.runInContext('trackIndex',ctx);vm.runInContext('music.onended()',ctx);assert.notEqual(vm.runInContext('trackIndex',ctx),last);
+$('#music-loop').onchange({target:{checked:true}});assert.equal(vm.runInContext('music.loop && !randomPlayback',ctx),true);
+console.log('PASS: volume defaults, blocked autoplay retry, manual stop respected, shuffle skips current track, shuffle on end, repeat mode');

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "character": "큐티섹시",
+  "crew": "버블란",
+  "identity": "Same character as reference: long black high ponytail, red eyes, white blouse, brown striped ribbon, black choker, black pleated skirt, black thigh-high socks, platform loafers, black shoulder bag. Preserve identity and clothes. No text.",
+  "jobs": [
+    {"id":"stream-room","prompt":"A cozy premium anime streamer room at night, charcoal walls, soft pink monitor light, understated desk, no person, no words or logos, landscape composition with clear center for character overlay.","output":"assets/stream-room.png","reference":false},
+    {"id":"night-pier","prompt":"An atmospheric anime night pier beside deep blue water, moonlit wooden walkway, quiet nostalgic feeling, no people, no text, landscape game background with clear center.","output":"assets/night-pier.png","reference":false},
+    {"id":"collab-studio","prompt":"Premium anime streaming collaboration studio, rose and charcoal palette, gentle stage lighting, no people, no text, landscape visual novel game background with clear center.","output":"assets/collab-studio.png","reference":false},
+    {"id":"final-stage","prompt":"A celebratory intimate anime streaming stage, soft pink and gold lights, delicate confetti at the sides, clear center, no people, no text, landscape visual novel game background.","output":"assets/final-stage.png","reference":false}
+  ]
+}
