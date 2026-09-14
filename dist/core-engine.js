@@ -17,9 +17,9 @@ export const FANS=['2U(Θ오Θ)U6','큐멍이♪','U(*ㅅ*)U짬뽕','슈미터�
 export const VIEWERS=[
  {name:'2U(Θ오Θ)U6',type:'열혈팬'}, {name:'큐멍이♪',type:'열혈팬'}, {name:'U(*ㅅ*)U짬뽕',type:'열혈팬'}, {name:'U^0^U다람',type:'열혈팬'}, {name:'U^0^U리버',type:'열혈팬'},
  {name:'슈미터☆',type:'열혈팬'}, {name:'U´ㅅ`U리스',type:'열혈팬'}, {name:'U`ㅅ`U대용',type:'열혈팬'}, {name:'U°ㅅ°U할라',type:'열혈팬'}, {name:'U^0^U세규',type:'열혈팬'},
- {name:'U≡ㅅ≡U뭉탁',type:'열혈팬'}, {name:'U=ㅅ=U코파',type:'열혈팬'}, {name:'에드워드×',type:'팬클럽'}, {name:'미에견',type:'팬클럽'}, {name:'큐로콩',type:'팬클럽'}, {name:'큐섹이의개',type:'팬클럽'},
- {name:'어둠',type:'팬클럽'}, {name:'김구맹',type:'팬클럽'}, {name:'노래ㄱ?',type:'팬클럽'}, {name:'빌런',type:'팬클럽'},{name:'정.복.자',type:'팬클럽'}, {name:'보스파이트',type:'팬클럽'}, {name:'김구맹',type:'팬클럽'},
- {name:'두통날때만오는사람',type:'신규 구독자'}, {name:'짱난하나냄새따라옴',type:'신규 구독자'}, {name:'나한테명령하지마',type:'신규 구독자'}, {name:'몸좋은사람',type:'신규 구독자'}, {name:'해리는호일룬',type:'신규 구독자'}, {name:'아놀드 슈왈츠제네거',type:'신규 구독자'}, {name:'근육남',type:'신규 구독자'}, {name:'이근대위',type:'신규 구독자'}, {name:'레전드오독련',type:'신규 구독자'}, {name:'컬러타일중독자',type:'신규 구독자'}, {name:'여자어쓰는사람만봄',type:'신규 구독자'}
+ {name:'U≡ㅅ≡U뭉탁',type:'열혈팬'}, {name:'U=ㅅ=U코파',type:'열혈팬'}, {name:'에드워드×',type:'팬클럽'}, {name:'미에견',type:'팬클럽'}, {name:'큐로콩',type:'팬클럽'}, {name:'큐섹이의개',type:'팬클럽'}, {name:'실버엘더',type:'팬클럽'}, {name:'유월',type:'팬클럽'}, {name:'수염버린재박',type:'팬클럽'}, {name:'지죤어둠',type:'팬클럽'}, 
+ {name:'어둠',type:'팬클럽'}, {name:'김구맹',type:'팬클럽'}, {name:'노래ㄱ?',type:'팬클럽'}, {name:'빌런',type:'팬클럽'},{name:'정.복.자',type:'팬클럽'}, {name:'보스파이트',type:'팬클럽'}, {name:'김구맹',type:'팬클럽'}, {name:'우주최강인직',type:'팬클럽'}, {name:'수달',type:'팬클럽'}, {name:'히모카',type:'팬클럽'},
+ {name:'두통날때만오는사람',type:'신규 구독자'}, {name:'짱난하나냄새따라옴',type:'신규 구독자'}, {name:'나한테명령하지마',type:'신규 구독자'}, {name:'몸좋은사람',type:'신규 구독자'}, {name:'해리는호일룬',type:'신규 구독자'}, {name:'아놀드 슈왈츠제네거',type:'신규 구독자'}, {name:'근육남',type:'신규 구독자'}, {name:'이근대위',type:'신규 구독자'}, {name:'제위로올라와주세요',type:'팬클럽'}, {name:'레전드오독련',type:'신규 구독자'}, {name:'컬러타일중독자',type:'신규 구독자'}, {name:'여자어쓰는사람만봄',type:'신규 구독자'}
 ];
 export const CREW_MEMBERS=['박재박','초금비','공태연','쩜냥이','슈니','다시바','유태','츄라희','큐티섹시','예요예요','설채이','김나오','멍보리'];
 export const COLLAB_MODES=['합방 게임','크루 점호','크루 디스코드 소통','버블란의 도전'];
