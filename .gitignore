@@ -1,0 +1,7 @@
+.sites-runtime/
+.env
+.env.*
+!.env.example
+__pycache__/
+tools/asset-state.json
+*.tar.gz

@@ -35,7 +35,7 @@ FANARTS.push(...[
  ['08_겨울_스노우스트리트','겨울 스노우 스트리트','눈 내리는 겨울 거리의 장면'],
  ['09_붉은달_야행신사','붉은달 야행 신사','붉은 달빛 아래 신사에 선 장면'],
  ['10_핑크_게이머룸','핑크 게이머 룸','핑크빛 게임방에서 즐기는 장면']
-].map(([file,title,description])=>({id:`new-${file}`,title,description,src:`assets/gallery/new-fanart/${file}.webp`,ready:true})));
+].map(([file,title,description])=>({id:`new-${file}`,title,description,src:`assets/gallery/new-fanart/${file}.png`,ready:true})));
 export const photosForDay=day=>PHOTOS.filter(p=>p.month===monthForDay(day));
 export function photoRewards(capture,orders,energy,streak){
  capture=Number.isFinite(capture)?Math.max(0,Math.min(1,capture)):0;

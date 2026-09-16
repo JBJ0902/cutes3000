@@ -49,6 +49,27 @@ test('60초 초과/차단된 후원자는 답변 승급 대상 제외',()=>{
 test('별풍 누적 상위20 진입·탈락 시 등급 일치',()=>{
  const s=start(),a=s.audience,v=a.people.find(v=>v.tier==='new');v.online=true;v.donated=200;donate(s,v,1,()=>.99);assert.equal(ranking(a)[0].id,v.id);assert.equal(v.tier,'elite');assert.equal(a.people.filter(v=>v.tier==='elite').length,20);
 });
+test('후원 직후 TOP20에 들어가도 당시 등급·인사말·채팅 표시는 바뀌지 않음',()=>{
+ const s=start(),a=s.audience,v=a.people.find(v=>v.tier==='new');v.online=true;v.donated=200;
+ const gift=donate(s,v,55,()=>.99),message=a.messages.find(m=>m.giftId===gift.id&&m.kind==='donation');
+ assert.equal(v.tier,'elite');assert.equal(gift.tierAtGift,'new');assert.equal(gift.groupAtGift,'신규시청자');assert.equal(gift.requiredGreeting,'ㅍㄴㅍㄴ');assert.equal(message.tier,'new');
+ const before=s.qch;const wrong=reply(s,'ㅇㅇㄱ',gift.id,()=>.99);assert.equal(wrong.reaction,'mistake');assert.equal(s.qch,before+2);assert.match(a.messages.at(-1).text,/후원 당시 신규시청자.*ㅍㄴㅍㄴ/);
+ const correct=reply(s,'ㅍㄴㅍㄴ',gift.id,()=>.99);assert.equal(correct.reaction,'heart');assert(gift.thanked);assert.equal(s.qch,before+1);
+});
+test('후원 당시 팬클럽·열혈팬 또는 신규 101개 이상은 ㅇㅇㄱ로 판정',()=>{
+ for(const tier of ['fan','elite']){const s=start(),a=s.audience,v=a.people.find(v=>v.tier===tier);v.online=true;const gift=donate(s,v,1,()=>.99);assert.equal(gift.requiredGreeting,'ㅇㅇㄱ');assert.equal(reply(s,'ㅇㅇㄱ',gift.id,()=>.99).reaction,'heart');}
+ const s=start(),a=s.audience,v=a.people.find(v=>v.tier==='new');v.online=true;const gift=donate(s,v,101,()=>.99);assert.equal(gift.requiredGreeting,'ㅇㅇㄱ');assert.equal(reply(s,'ㅇㅇㄱ',gift.id,()=>.99).reaction,'heart');
+});
+test('방셀 등 활동 결과는 시청자 닉네임이 아닌 방송 안내 메시지로 기록',()=>{
+ const s=start(),a=s.audience;contextChat(s,'result','photo','100점 · 주문 6/6 성공');const message=a.messages.at(-1);
+ assert.equal(message.viewerId,null);assert.equal(message.name,'방송 안내');assert.equal(message.tier,'system');assert.equal(message.kind,'result');assert.match(message.text,/방셀 촬영 결과: 100점/);
+});
+test('방셀 판매 별풍선 이벤트는 그림용 시스템 메시지이며 후원·순위·큐창 수치를 건드리지 않음',()=>{
+ const s=start(),a=s.audience,before={gifts:a.gifts.length,donated:a.people.reduce((n,v)=>n+v.donated,0),balloons:s.balloons,qch:s.qch};
+ contextChat(s,'photo-sale-balloon','photo');const message=a.messages.at(-1);
+ assert.equal(message.viewerId,null);assert.equal(message.name,'방셀 판매 응원');assert.equal(message.tier,'system');assert.equal(message.kind,'photo-sale-balloon');assert.equal(message.text,'방셀 주문과 함께 별풍선 응원이 들어왔어요!');assert(!/\d/.test(message.text));
+ assert.deepEqual({gifts:a.gifts.length,donated:a.people.reduce((n,v)=>n+v.donated,0),balloons:s.balloons,qch:s.qch},before);
+});
 test('상황별 채팅과 메시지 최대80개, 닉네임 동일',()=>{
  const s=start(),a=s.audience;for(const t of ['sing','rhythm','clip','game','up','collab','photo','cafe','chat','memory']){contextChat(s,'start',t);assert.equal(a.topic,t);assert(a.messages.at(-1).kind==='context');}for(let i=0;i<100;i++)say(a,online(a)[0],'채팅'+i);assert.equal(a.messages.length,80);assert(a.messages.every(m=>a.people.find(v=>v.id===m.viewerId).name===m.name));
 });

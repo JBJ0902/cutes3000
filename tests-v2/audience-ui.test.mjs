@@ -16,7 +16,8 @@ test('UI 생성: 두 피드의 메시지 ID/내용 동일, 명부 인원·후원
  let main=ui.compactHTML(),lower=ui.feedHTML();for(const m of s.audience.messages){assert(main.includes(`data-message-id="${m.id}"`));assert(lower.includes(`data-message-id="${m.id}"`));assert(main.includes(m.text));assert(lower.includes(m.text));}
  assert(main.includes(`시청자 ${online(s.audience).length}명`));
  const gift=donate(s,online(s.audience)[0],10);assert(ui.compactHTML().includes('chat-balloon'));s.audience.time+=11;assert(!ui.compactHTML().includes('chat-balloon'));assert(ui.feedHTML().includes(`별풍선 ${gift.amount}개`));
- say(s.audience,online(s.audience)[0],'<img src=x onerror=alert(1)>');assert(!ui.compactHTML().includes('<img'));assert(ui.compactHTML().includes('&lt;img'));
+ const giftCount=s.audience.gifts.length;ui.context('photo-sale-balloon','photo');main=ui.compactHTML();lower=ui.feedHTML();assert(main.includes('chat-photo-sale'));assert(main.includes('chat-gift-icon'));assert(lower.includes('방셀 주문과 함께 별풍선 응원이 들어왔어요!'));assert.equal(s.audience.gifts.length,giftCount);
+ say(s.audience,online(s.audience)[0],'<img src=x onerror=alert(1)>');assert(!ui.compactHTML().includes('<img src=x'));assert(ui.compactHTML().includes('&lt;img'));
  listeners.click({target:{closest:(selector)=>selector==='[data-chat-viewer]'?null:{dataset:{audience:'list'}}}});const dialog=elements[0];assert(dialog.open);assert.equal((dialog.innerHTML.match(/data-viewer-id=/g)||[]).length,online(s.audience).length);assert(ui.paused());
  assert(main.includes('data-chat-viewer="'));assert(main.includes('aria-haspopup="menu"'));assert(ui.feedHTML().includes('data-chat-viewer="'));
  assert(readFileSync(new URL('../dist/audience-ui.js',import.meta.url),'utf8').includes("button.closest('dialog')?.open?button.closest('dialog'):document.body"));
@@ -33,4 +34,17 @@ test('하단 피드는 바깥 스크롤 없이 내부 세로 스크롤 하나와
  assert(css.includes('#app .audience-feed [data-audience-feed]{height:auto!important;max-height:none!important;'));
  assert(css.includes('overflow:hidden}.audience-feed [data-audience-feed]'));
  assert(css.includes('overflow-y:auto;overflow-x:hidden'));
+});
+test('채팅 역할별 색상과 후원 당시 등급 표시가 고정된 소스 계약',()=>{
+ const ui=readFileSync(new URL('../dist/audience-ui.js',import.meta.url),'utf8');
+ const css=readFileSync(new URL('../dist/audience.css',import.meta.url),'utf8');
+ assert(ui.includes("['new','fan','elite','host','system'].includes(m.tier)"));
+ assert(ui.includes('chat-tier-${tier}'));
+ assert(ui.includes('후원 당시'));assert(!ui.includes('g.requiredGreeting'));assert(!ui.includes(' · 인사 ${'));
+ assert(ui.includes('후원 당시 등급과 별풍선 수량을 확인하고 알맞은 인사를 선택해 주세요.'));
+ assert(ui.includes("['donation','photo-sale-balloon'].includes(m.kind)"));
+ assert(css.includes('.chat-tier-system'));assert(css.includes('#ffd166'));
+ assert(css.includes('.chat-tier-new'));assert(css.includes('#79c7ff'));
+ assert(css.includes('.chat-tier-fan'));assert(css.includes('#a7e77b'));
+ assert(css.includes('.chat-tier-elite'));assert(css.includes('#ff9ac0'));
 });
