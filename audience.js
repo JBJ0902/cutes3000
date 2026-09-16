@@ -22,14 +22,14 @@ export function validAudience(a){
   return a.messages.every(m=>m&&typeof m.id==='string'&&typeof m.text==='string'&&m.text.length<=500&&typeof m.name==='string'&&m.name.length<=100&&Number.isFinite(m.at)&&(!m.viewerId||ids.has(m.viewerId)))&&a.gifts.every(g=>g&&typeof g.id==='string'&&ids.has(g.viewerId)&&Number.isFinite(g.amount)&&g.amount>0&&g.amount<=120&&Number.isFinite(g.at)&&typeof g.thanked==='boolean');
 }
 export function ensureAudience(s,seeds=[],r=Math.random){
-  if(s.audience?.version===1){s.audience.kicks??=[];return s.audience;}
+  if(s.audience?.version===1){const a=s.audience;a.kicks??=[];if(a.giftSnapshotVersion!==1){for(const gift of a.gifts){const v=a.people.find(p=>p.id===gift.viewerId),tier=GROUPS[gift.tierAtGift]?gift.tierAtGift:gift.wasNew?'new':GROUPS[v?.tier]?v.tier:'fan';gift.tierAtGift=tier;gift.groupAtGift=GROUPS[tier];gift.requiredGreeting??=tier==='new'&&gift.amount<=100?'ㅍㄴㅍㄴ':'ㅇㅇㄱ';const message=a.messages.find(m=>m.giftId===gift.id&&m.kind==='donation');if(message)message.tier=tier;}a.giftSnapshotVersion=1;}return a;}
   const people=[],names=new Set();
   const add=(name,tier)=>{name=String(name).normalize('NFC').slice(0,70);if(names.has(name))return;names.add(name);const i=people.length;const historical=tier==='elite'?Math.max(20,70-i*2):tier==='fan'?5+i%12:0;people.push({id:'v'+i,name,tier,donated:historical,historical,online:false,blocked:false,returning:false,trouble:tier==='new'&&r()<.18,interests:[Object.keys(TOPICS)[1+i%10],Object.keys(TOPICS)[1+(i*3)%10]],watch:0,entered:0,kickedUntil:0,abuseUntil:0,lastAbuse:-1000,moderatedDay:-1,refundable:0});};
   seeds.forEach(v=>add(v.name,/열혈/.test(v.type)?'elite':/팬클럽/.test(v.type)?'fan':'new'));
   const adjectives=['새벽','분홍','달빛','포근한','별빛','느긋한','노래하는','구름','반짝','웃는','우주','소소한','따뜻한','바람','푸른','오늘의'];
   const nouns=['토끼','고양이','라떼','푸딩','털뭉치','산책','리본','다람쥐','별사탕','구독자','노트','복숭아','쿠키','소나기','여우','멜로디','마카롱','참새','수달','밤하늘'];
   for(const x of adjectives)for(const y of nouns){const elite=people.filter(v=>v.tier==='elite').length<20;add(x+y,elite?'elite':people.length<70?'fan':'new');}
-  const a=s.audience={version:1,people,messages:[],gifts:[],kicks:[],time:0,seq:0,chatClock:0,rosterClock:0,supportClock:0,pressure:0,penaltyClock:0,feedbackAt:0,nextGiftAt:8,topic:'idle',lastTopic:'idle',day:{index:s.day,gifts:0,balloons:0,penalties:0,goodMods:0,badMods:0,stress:0}};
+  const a=s.audience={version:1,giftSnapshotVersion:1,people,messages:[],gifts:[],kicks:[],time:0,seq:0,chatClock:0,rosterClock:0,supportClock:0,pressure:0,penaltyClock:0,feedbackAt:0,nextGiftAt:8,topic:'idle',lastTopic:'idle',day:{index:s.day,gifts:0,balloons:0,penalties:0,goodMods:0,badMods:0,stress:0}};
   updateRanks(a);
   const pool=[...people];while(online(a).length<targetViewers(s)&&pool.length){const v=weighted(pool,v=>v.tier==='elite'?4:v.tier==='fan'?2:1,r);v.online=true;pool.splice(pool.indexOf(v),1);}
   for(let i=0;i<3;i++)say(a,pick(online(a),r),['오늘도 함께할게요!','방송 켜져서 들어왔어요.','채팅으로 같이 응원해요!'][i]);
@@ -53,12 +53,13 @@ function effect(s,delta,reason){
 export function supportFactor(s){const a=s.audience;return cap((.65+s.loyal/200)*(1-a.pressure*.12)*(1+Math.min(4,a.day.goodMods)*.04)*(1-Math.min(.22,(s.qch||0)*.002)),.3,1.35);}
 export function donate(s,v,amount,r=Math.random){const a=s.audience;day(a,s);if(s.phase!=='plan'||!v?.online||v.blocked||a.day.gifts>=3)return null;
   amount=Math.floor(Math.min(amount,120-a.day.balloons,1000000-s.balloons));if(amount<=0)return null;
+  const tierAtGift=v.tier,groupAtGift=GROUPS[tierAtGift],requiredGreeting=tierAtGift==='new'&&amount<=100?'ㅍㄴㅍㄴ':'ㅇㅇㄱ';
   const oldThreshold=Math.min(3,Math.floor((s.dayBalloons||0)/50));
   effect(s,{},'후원');const before=Object.fromEntries(['day','followers','hype','loyal','mood','energy','favorites','balloons'].map(k=>[k,s[k]]));s.balloons+=amount;s.dayBalloons+=amount;a.day.balloons+=amount;a.day.gifts++;v.donated+=amount;
   s.eventLog.push({id:'gift-ledger-'+(++a.seq),day:s.day,text:`${v.name}님 별풍선 ${amount}개`,before,after:{...before,balloons:s.balloons}});
-  const gift={id:'gift-'+(++a.seq),viewerId:v.id,amount,at:a.time,thanked:false,missed:false,reactionOffered:false,wasNew:v.tier==='new',requiredGreeting:v.tier==='new'&&amount<=100?'ㅍㄴㅍㄴ':'ㅇㅇㄱ'};a.gifts.push(gift);a.gifts=a.gifts.slice(-200);
+  const gift={id:'gift-'+(++a.seq),viewerId:v.id,amount,at:a.time,thanked:false,missed:false,reactionOffered:false,wasNew:tierAtGift==='new',tierAtGift,groupAtGift,requiredGreeting};a.gifts.push(gift);a.gifts=a.gifts.slice(-200);
   if(v.tier==='new'&&r()<.35)v.tier='fan';updateRanks(a);
-  say(a,v,`🎈 별풍선 ${amount}개! 오늘 방송도 응원해요!`,'donation',{giftId:gift.id});
+  say(a,v,`🎈 별풍선 ${amount}개! 오늘 방송도 응원해요!`,'donation',{giftId:gift.id,tier:tierAtGift});
   const reactions=amount>=50?['와 별풍선이다!','후원 감사합니다, 큐티섹시!','이건 꼭 답장해 줘요!']:['작은 응원도 소중해요!','별풍선 들어왔네요 ㅎㅎ'];
   for(const text of reactions.slice(0,amount>=50?3:2))say(a,weighted(online(a).filter(p=>p.id!==v.id),p=>p.tier==='elite'?3:p.tier==='fan'?2:1,r),text,'gift-reaction',{giftId:gift.id});
   effect(s,{mood:Math.min(3,Math.floor(s.dayBalloons/50))-oldThreshold},'후원 누적 응원');
@@ -83,17 +84,17 @@ export function moderate(s,id,action,r=Math.random){const a=s.audience;day(a,s);
   if(action==='kick'){a.kicks??=[];a.kicks.unshift({id:'kick-'+(++a.seq),viewerId:v.id,name:v.name,day:s.day,at:a.time,reason:toxic?'악플 대응':'일반 시청자 관리',wrong:!toxic});a.kicks=a.kicks.slice(0,100);}
   if(!toxic){s.qch=cap((s.qch||0)+(v.donated>0?3:2));say(a,null,`${v.name}님 관리가 잘못 처리된 것 같아요. 큐창 스탯 +${v.donated>0?3:2}`,'warning');}
   a.pressure=cap(online(a).filter(p=>p.abuseUntil>a.time).length,0,5);say(a,null,`${v.name}님 ${action==='block'?'차단':'강퇴'} · ${toxic?'악플 대응':'일반 시청자 관리'}`,'system');
-  return {ok:true,changes,message:toxic?'악플에 대응했어요. 같은 유저의 관리 보상은 하루 한 번입니다.':'일반 시청자 퇴장은 팬들의 신뢰와 화제성을 조금 낮춥니다.'};
+  return {ok:true,changes,reaction:toxic?'angry':'mistake',message:toxic?'악플에 대응했어요. 같은 유저의 관리 보상은 하루 한 번입니다.':'일반 시청자 퇴장은 팬들의 신뢰와 화제성을 조금 낮춥니다.'};
 }
 export function reply(s,text,giftId,r=Math.random){const a=s.audience;text=String(text).normalize('NFC').replace(/[\p{Cc}\p{Cf}]/gu,'').trim().slice(0,100);if(!text||s.phase!=='plan')return {ok:false,message:'방송 진행 중에 답변을 입력해 주세요.'};a.lastReply=a.time;
   say(a,{id:null,name:'큐티섹시',tier:'host'},text,'host');
   const gift=a.gifts.find(g=>g.id===giftId),v=gift&&a.people.find(v=>v.id===gift.viewerId);
   if(!gift||!v||gift.thanked||a.time-gift.at>60||v.blocked||!v.online)return {ok:true,message:'답변을 보냈어요.'};
-  const expected=gift.requiredGreeting||(v.tier==='new'&&gift.amount<=100?'ㅍㄴㅍㄴ':'ㅇㅇㄱ');
-  if(!text.includes(expected)){s.qch=cap((s.qch||0)+2);say(a,null,`${v.name}님에게 ${expected}로 인사해야 했어요. 큐창 스탯 +2`,'warning');return {ok:true,message:`후원자 등급에 맞는 인사가 아니에요. 정답은 ${expected}입니다.`};}
+  const tierAtGift=GROUPS[gift.tierAtGift]?gift.tierAtGift:gift.wasNew?'new':v.tier,expected=gift.requiredGreeting||(tierAtGift==='new'&&gift.amount<=100?'ㅍㄴㅍㄴ':'ㅇㅇㄱ');
+  if(!text.includes(expected)){s.qch=cap((s.qch||0)+2);say(a,null,`${v.name}님은 후원 당시 ${GROUPS[tierAtGift]||'시청자'}였으므로 ${expected}로 인사해야 했어요. 큐창 스탯 +2`,'warning');return {ok:true,reaction:'mistake',message:`후원 당시 등급에 맞는 인사가 아니에요. 정답은 ${expected}입니다.`};}
   s.qch=cap((s.qch||0)-1);
-  gift.thanked=true;if(gift.wasNew&&v.tier==='new'&&r()<.8){v.tier='fan';say(a,v,'인사해 줘서 고마워요! 팬클럽으로 함께할게요.','promotion');return {ok:true,message:'신규 시청자가 팬클럽으로 승급했어요!'};}
-  say(a,v,'답변 고마워요! 다음 방송도 들를게요.','normal');return {ok:true,message:'후원자에게 인사가 전달됐어요. 같은 후원에는 한 번만 반영됩니다.'};
+  gift.thanked=true;if(gift.wasNew&&v.tier==='new'&&r()<.8){v.tier='fan';say(a,v,'인사해 줘서 고마워요! 팬클럽으로 함께할게요.','promotion');return {ok:true,reaction:'heart',message:'신규 시청자가 팬클럽으로 승급했어요!'};}
+  say(a,v,'답변 고마워요! 다음 방송도 들를게요.','normal');return {ok:true,reaction:'heart',message:'후원자에게 인사가 전달됐어요. 같은 후원에는 한 번만 반영됩니다.'};
 }
 const BANK={
   cheer:['오늘도 목표까지 같이 가요!','잘하고 있어요, 천천히 해요!','물 한 모금 마시고 해요.','큐티섹시 화이팅 ✦'],
@@ -104,8 +105,10 @@ const BANK={
   good:['방금 성공 멋졌다!','이건 진짜 잘했어요 ㅋㅋ','정확했다! 계속 가보자!'],bad:['괜찮아요, 다음 기회가 있어요.','조금 아깝다! 한 번 더 집중!','급하게 하지 말고 천천히 해요.']
 };
 export function contextChat(s,kind,topic,detail='',r=Math.random){const a=s.audience;if(topic&&TOPICS[topic]){a.topic=topic;a.lastTopic=topic;}if(kind==='feedback'&&a.time-a.feedbackAt<5)return;if(kind==='feedback')a.feedbackAt=a.time;
+  const title=TOPICS[topic]||'방송';const text=kind==='start'?`${title} 시작! ${detail}`:kind==='result'?`${title} 결과: ${detail}`:kind==='photo-sale-balloon'?'방셀 주문과 함께 별풍선 응원이 들어왔어요!':kind==='cancel'?`${title} 잠시 쉬어 가요.`:detail;
+  if(kind==='result'){say(a,null,text,'result');return;}
+  if(kind==='photo-sale-balloon'){say(a,{id:null,name:'방셀 판매 응원',tier:'system'},text,'photo-sale-balloon');return;}
   const v=pick(online(a).filter(v=>!v.blocked&&v.abuseUntil<=a.time),r);if(!v)return;
-  const title=TOPICS[topic]||'방송';const text=kind==='start'?`${title} 시작! ${detail}`:kind==='result'?`${title} 결과: ${detail}`:kind==='cancel'?`${title} 잠시 쉬어 가요.`:detail;
   say(a,v,text||pick(BANK[a.topic]||BANK.cheer,r),'context');
 }
 export function tickAudience(s,seconds,ctx={},r=Math.random){const a=s.audience;day(a,s);if(s.phase!=='plan'||!ctx.running)return {changed:false,gifts:[]};
